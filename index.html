@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Parallax Smooth</title>
+
+<style>
+:root{
+  --page-height: 200vh;
+  --container-width: 1440px;
+}
+
+html{
+  scroll-behavior:smooth;
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  overflow-x:hidden;
+  background:#000;
+  font-family: system-ui, Arial, sans-serif;
+}
+
+/* tło */
+.bg-fixed{
+  position:fixed;
+  inset:0;
+  background:url("img/bg.png") center/cover no-repeat;
+  z-index:0;
+}
+
+/* scena */
+.scene{
+  position:relative;
+  height:var(--page-height);
+  z-index:1;
+}
+
+/* box 1440 */
+.container{
+  position:relative;
+  max-width:var(--container-width);
+  margin:0 auto;
+  padding-top:8vh;
+  padding-left:16px;
+  padding-right:16px;
+}
+
+/* warstwy */
+.layer{
+  position:relative;
+  width:100%;
+  will-change:transform;
+  pointer-events:none;
+}
+
+.layer img{
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+/* head */
+.head{
+  margin-bottom:4vh;
+}
+
+/* lapki z dodatkowym overlapem */
+.lapki{
+  margin-bottom:0;
+  margin-top:-12vh;
+}
+
+/* kontener fullscreen + większy overlap */
+.kontener{
+  width:100vw;
+  max-width:100vw;
+
+  position:relative;
+  left:50%;
+  right:50%;
+  margin-left:-50vw;
+  margin-right:-50vw;
+
+  margin-top:-25vh;  /* mocne startowe nachodzenie */
+  padding-top:0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="bg-fixed"></div>
+
+<main class="scene" id="scene">
+  <div class="container">
+
+    <!-- head: wolniej do góry -->
+    <div class="layer head" data-speed="-0.1">
+      <img src="img/head.png" alt="head">
+    </div>
+
+    <!-- lapki: szybciej do góry -->
+    <div class="layer lapki" data-speed="-0.40">
+      <img src="img/lapki.png" alt="lapki">
+    </div>
+
+    <!-- kontener: najszybciej -->
+    <div class="layer kontener" data-speed="-0.70">
+      <img src="img/kontener.png" alt="kontener">
+    </div>
+
+  </div>
+</main>
+
+<script>
+/* SMOOTH SCROLL ENGINE */
+
+let targetScroll = 0;
+let currentScroll = 0;
+const ease = 0.08;
+
+const scene = document.getElementById("scene");
+const layers = document.querySelectorAll("[data-speed]");
+
+function clamp(v, min, max){ return Math.max(min, Math.min(max, v)); }
+
+function updateParallax(scrollValue){
+  const sceneTop = scene.offsetTop;
+  const sceneHeight = scene.offsetHeight;
+  const maxLocal = Math.max(0, sceneHeight - window.innerHeight);
+  const localScroll = clamp(scrollValue - sceneTop, 0, maxLocal);
+
+  layers.forEach(el=>{
+    const speed = parseFloat(el.dataset.speed || "0");
+    el.style.transform = `translate3d(0, ${localScroll * speed}px, 0)`;
+  });
+}
+
+function animate(){
+  currentScroll += (targetScroll - currentScroll) * ease;
+  updateParallax(currentScroll);
+  requestAnimationFrame(animate);
+}
+
+window.addEventListener("scroll", ()=>{
+  targetScroll = window.scrollY;
+}, {passive:true});
+
+animate();
+</script>
+
+
+</body>
+</html>
